@@ -7,14 +7,13 @@ import { ChartMap, ChartType } from './chart-map';
 import { Column, Line, Area } from '@antv/g2plot';
 import { DATE_FORMATTER, DATE_KEY } from './date-map';
 import { debounce } from 'lodash-es';
+import { useTranslation } from 'react-i18next';
 
 const Y_FIELD_TYPE = [FieldType.Number, FieldType.Progress, FieldType.Rating, FieldType.Currency]
 const X_FIELD_TYPE = [FieldType.DateTime, FieldType.CreatedTime, FieldType.ModifiedTime]
 
 const X_Field_KEY = 'Date';
 const Y_Field_KEY = 'Value';
-
-
 
 export const App = () => {
   const chartContainer = useRef<HTMLDivElement>(null)
@@ -26,6 +25,7 @@ export const App = () => {
   const [chartType, setChartType] = useState<ChartType>(ChartType.Column);
   const [chartInstance, setChartInstance] = useState<Line | Column | Area>();
   const [dateType, setDateType] = useState<string>(DATE_FORMATTER[DATE_KEY.Day]);
+  const { t } = useTranslation();
 
   const fetchXYItemList = async () => {
     const table = await bitable.base.getActiveTable();
@@ -105,7 +105,6 @@ export const App = () => {
       width: chartWidth,
       height: chartHeight,
     });
-    console.log(dataValue, 'dongdong')
     chart.render();
     setChartInstance(chart);
     setLoadingChart(false);
@@ -113,7 +112,9 @@ export const App = () => {
 
   const onListenValueChange = async () => {
     const table = await bitable.base.getActiveTable();
-    table.onRecordAdd(() => renderChart());
+    table.onRecordAdd(() => {
+      renderChart()
+    });
     table.onRecordModify(() => renderChart());
     table.onRecordDelete(() => renderChart());
   }
@@ -138,7 +139,7 @@ export const App = () => {
     <Form>
       <div style={{ display: 'flex ' }}>
         <Form.Item required className={'field-form-item'}
-                   label={<Alert className={'field-form-alert'} message={'Select X Field'}/>}
+                   label={<Alert className={'field-form-alert'} message={t('SelectXField')}/>}
         >
           <Select
             style={{ width: 200 }}
@@ -147,9 +148,23 @@ export const App = () => {
           />
         </Form.Item>
         <Form.Item className={'field-form-item'}
-                   label={<Alert className={'field-form-alert'} message={'Select Y Field'}/>}
-                   required
+                   label={<Alert className={'field-form-alert'} message={t('SelectChartType')} type={'success'}/>}
+
                    style={{ marginLeft: 12 }}
+                   >
+          <Select
+            defaultValue={ChartType.Column}
+            style={{ width: 120 }}
+            options={Object.keys(ChartMap).map(chartKey => ({ value: chartKey, label: t(chartKey) }))}
+            onSelect={chartKey => setChartType(chartKey as ChartType)}
+          />
+        </Form.Item>
+      </div>
+      <div style={{ display: 'flex' }}>
+        <Form.Item className={'field-form-item'}
+                   label={<Alert className={'field-form-alert'} message={t('SelectYField')}/>}
+                   style={{ marginTop: 12 }}
+                   required
         >
           <Select
             style={{ width: 200 }}
@@ -157,25 +172,13 @@ export const App = () => {
             onSelect={setYFieldId}
           />
         </Form.Item>
-      </div>
-      <div style={{ display: 'flex' }}>
-        <Form.Item required className={'field-form-item'}
-                   label={<Alert className={'field-form-alert'} message={'Select Chart type'} type={'success'}/>}
-                   style={{ marginTop: 12 }}>
-          <Select
-            defaultValue={ChartType.Column}
-            style={{ width: 120 }}
-            options={Object.keys(ChartMap).map(chartKey => ({ value: chartKey, label: chartKey }))}
-            onSelect={chartKey => setChartType(chartKey as ChartType)}
-          />
-        </Form.Item>
-        <Form.Item required className={'field-form-item'}
-                   label={<Alert className={'field-form-alert'} message={'Change Date Display Type'} type={'success'}/>}
+        <Form.Item className={'field-form-item'}
+                   label={<Alert className={'field-form-alert'} message={t('SelectDate')} type={'success'}/>}
                    style={{ marginTop: 12, marginLeft: 12 }}>
           <Select
-            defaultValue={DATE_KEY.Day}
+            defaultValue={t(DATE_KEY.Day)}
             style={{ width: 120 }}
-            options={Object.keys(DATE_FORMATTER).map(date => ({ value: DATE_FORMATTER[date as DATE_KEY], label: date }))}
+            options={Object.keys(DATE_FORMATTER).map(date => ({ value: DATE_FORMATTER[date as DATE_KEY], label: t(date) }))}
             onSelect={setDateType}
           />
         </Form.Item>
@@ -187,9 +190,8 @@ export const App = () => {
           <div className={'chart-container'} ref={chartContainer}/>
         </Spin>
       ) : (
-        <Alert type={'warning'} message={'Please select XField YField'} style={{ marginTop: 15 }}/>
+        <Alert showIcon type={'warning'} message={t('info')} style={{ marginTop: 15 }}/>
       )
     }
-
   </>
 }
