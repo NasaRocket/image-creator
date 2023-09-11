@@ -6,6 +6,7 @@ import { Alert, Form, Select, Spin } from 'antd';
 import { ChartMap, ChartType } from './chart-map';
 import { Column, Line, Area } from '@antv/g2plot';
 import { DATE_FORMATTER, DATE_KEY } from './date-map';
+import { debounce } from 'lodash-es';
 
 const Y_FIELD_TYPE = [FieldType.Number, FieldType.Progress, FieldType.Rating, FieldType.Currency]
 const X_FIELD_TYPE = [FieldType.DateTime, FieldType.CreatedTime, FieldType.ModifiedTime]
@@ -81,7 +82,7 @@ export const App = () => {
     return data;
   }
 
-  const renderChart = async () => {
+  const renderChart = debounce(async () => {
     setLoadingChart(true);
     if (!chartContainer.current) {
       setLoadingChart(false);
@@ -108,12 +109,13 @@ export const App = () => {
     chart.render();
     setChartInstance(chart);
     setLoadingChart(false);
-  }
+  }, 200);
 
   const onListenValueChange = async () => {
     const table = await bitable.base.getActiveTable();
-    table.onRecordAdd(renderChart);
-    table.onRecordModify(renderChart);
+    table.onRecordAdd(() => renderChart());
+    table.onRecordModify(() => renderChart());
+    table.onRecordDelete(() => renderChart());
   }
 
   useEffect(() => {
@@ -122,8 +124,7 @@ export const App = () => {
 
   useEffect(() => {
     bitable.base.onSelectionChange(fetchXYItemList);
-    bitable.base.onSelectionChange(renderChart);
-    bitable.base.onSelectionChange(onListenValueChange);
+    bitable.base.onSelectionChange(() => renderChart());
     onListenValueChange();
     fetchXYItemList();
   }, []);
