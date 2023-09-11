@@ -1,0 +1,13 @@
+.field-form-alert {
+  padding: 4px 6px;
+}
+
+.field-form-item {
+  margin-bottom: 0;
+}
+
+.chart-container {
+  width: 100%;
+  margin-top: 12px;
+  height: 300px;
+}
